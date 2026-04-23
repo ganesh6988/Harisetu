@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HaritSetu Worker Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#5a4300",
+                        "surface-container-high": "#e6e8ea",
+                        "surface": "#f7f9fb",
+                        "surface-bright": "#f7f9fb",
+                        "on-background": "#191c1e",
+                        "tertiary-container": "#936f00",
+                        "inverse-surface": "#2d3133",
+                        "on-secondary-container": "#fefcff",
+                        "error-container": "#ffdad6",
+                        "on-primary-container": "#f7fff2",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed": "#00174b",
+                        "on-tertiary": "#ffffff",
+                        "tertiary": "#755800",
+                        "on-surface-variant": "#3e4a3d",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#002109",
+                        "on-primary": "#ffffff",
+                        "primary-fixed": "#7ffc97",
+                        "on-error": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "secondary-container": "#316bf3",
+                        "background": "#f7f9fb",
+                        "primary": "#006b2c",
+                        "primary-fixed-dim": "#62df7d",
+                        "on-tertiary-container": "#fffbff",
+                        "tertiary-fixed-dim": "#f7be1d",
+                        "primary-container": "#00873a",
+                        "surface-tint": "#006e2d",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#003ea8",
+                        "surface-container-low": "#f2f4f6",
+                        "surface-variant": "#e0e3e5",
+                        "tertiary-fixed": "#ffdf9a",
+                        "inverse-primary": "#62df7d",
+                        "on-primary-fixed-variant": "#005320",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary": "#0051d5",
+                        "surface-container-highest": "#e0e3e5",
+                        "secondary-fixed": "#dbe1ff",
+                        "outline-variant": "#bdcaba",
+                        "outline": "#6e7b6c",
+                        "on-tertiary-fixed": "#251a00",
+                        "surface-container": "#eceef0",
+                        "surface-dim": "#d8dadc",
+                        "inverse-on-surface": "#eff1f3"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased selection:bg-primary-fixed-dim selection:text-on-primary-fixed">
+<!-- SideNavBar (Shared Component) -->
+<aside class="fixed h-full w-64 left-0 top-0 hidden md:block bg-slate-50 dark:bg-slate-900 shadow-sm z-50">
+<div class="flex flex-col h-screen py-6 px-4">
+<div class="mb-10 px-2">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary-container" style="font-variation-settings: 'FILL' 1;">recycling</span>
+</div>
+<div>
+<h1 class="text-xl font-black text-green-800 dark:text-green-300 leading-none">HaritSetu</h1>
+<span class="text-xs font-medium text-slate-500 uppercase tracking-widest">Digital Stewardship</span>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 border-l-4 border-green-600 dark:border-green-400 text-green-700 dark:text-green-400 font-bold bg-white dark:bg-slate-950/50 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-inter text-sm font-medium tracking-tight">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-green-600 dark:hover:text-green-300 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800" href="#">
+<span class="material-symbols-outlined" data-icon="recycling">recycling</span>
+<span class="font-inter text-sm font-medium tracking-tight">Waste Tracking</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-green-600 dark:hover:text-green-300 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800" href="#">
+<span class="material-symbols-outlined" data-icon="route">route</span>
+<span class="font-inter text-sm font-medium tracking-tight">Route Optimization</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-green-600 dark:hover:text-green-300 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800" href="#">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+<span class="font-inter text-sm font-medium tracking-tight">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-green-600 dark:hover:text-green-300 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-inter text-sm font-medium tracking-tight">Personnel</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-green-600 dark:hover:text-green-300 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-inter text-sm font-medium tracking-tight">Settings</span>
+</a>
+</nav>
+<div class="mt-auto space-y-1">
+<button class="w-full mb-6 py-3 px-4 bg-primary text-on-primary rounded-xl font-bold text-sm shadow-sm scale-95 active:scale-90 transition-transform flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg" data-icon="add">add</span>
+                    Report Waste
+                </button>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 dark:text-slate-400 hover:text-green-600 dark:hover:text-green-300 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-inter text-sm font-medium tracking-tight">Support</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-slate-500 dark:text-slate-400 hover:text-green-600 dark:hover:text-green-300 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-inter text-sm font-medium tracking-tight">Logout</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 min-h-screen pb-20 md:pb-0">
+<!-- TopNavBar (Shared Component) -->
+<header class="sticky top-0 w-full z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 shadow-sm h-16 px-6 flex justify-between items-center ml-auto">
+<div class="flex items-center gap-8">
+<span class="text-lg font-bold text-green-800 dark:text-green-300 md:hidden">HaritSetu</span>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-green-700 dark:text-green-400 border-b-2 border-green-700 dark:border-green-400 pb-1 font-inter text-sm tracking-normal" href="#">Overview</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-green-600 dark:hover:text-green-300 transition-colors font-inter text-sm tracking-normal" href="#">Map View</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-green-600 dark:hover:text-green-300 transition-colors font-inter text-sm tracking-normal" href="#">Reports</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden lg:flex items-center bg-surface-container-low px-4 py-2 rounded-full border-none focus-within:ring-2 focus-within:ring-green-500 transition-all">
+<span class="material-symbols-outlined text-slate-400 mr-2" style="font-size: 18px;">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-48 font-inter" placeholder="Search tasks..." type="text"/>
+</div>
+<div class="flex items-center gap-3">
+<button class="p-2 text-slate-500 hover:text-green-600 transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container-high border-2 border-primary-container">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" data-alt="professional headshot of a mature worker in high-visibility safety vest smiling confidently with warm natural lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7o3TfnQap_ZND0Gr9jU4yoXfgK6WXaPXhsVSH-4n2Yacohs6QEBSOipKVj132_-PTeAqRrwoZbLo-9d0tXrf4hmYFCLP1-kh6b2JhCq-_QDPeyVRwLDSw-d0GF3qFPX5WWBGabOmy6oy2d_U3OK6vOhB66Xab-JFghn18slVi4TndNbdKHO5YSPM5C5hjfMJ3E9Zp79__eDFAiBKzAbhuk21QwVqYnwc1nGWyPUryC7YNau1qM_8_eL_AnmiSzmXi0Oy7czv34WK6"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Dashboard Body -->
+<div class="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
+<!-- Welcome Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h2 class="text-3xl md:text-4xl font-extrabold tracking-tight text-on-surface">Hello, Rajesh</h2>
+<p class="text-on-surface-variant font-medium mt-1">Sector 48-B • Evening Shift • <span class="text-primary font-bold">On Duty</span></p>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center gap-2 px-6 py-3 bg-secondary-container text-on-secondary-container rounded-xl font-bold shadow-sm active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="emergency">emergency</span>
+                        Emergency
+                    </button>
+<button class="flex items-center gap-2 px-6 py-3 bg-primary text-on-primary rounded-xl font-bold shadow-sm active:scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="upload">upload</span>
+                        Upload Waste
+                    </button>
+</div>
+</div>
+<!-- Stats Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Assigned Tasks -->
+<div class="bg-secondary-fixed text-on-secondary-fixed p-6 rounded-xl relative overflow-hidden flex flex-col justify-between h-48 group">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-4xl opacity-50" data-icon="assignment">assignment</span>
+<span class="text-xs font-black uppercase tracking-widest bg-on-secondary-fixed/10 px-2 py-1 rounded">Priority</span>
+</div>
+<div>
+<p class="text-sm font-bold opacity-80 uppercase tracking-tighter">Assigned Tasks</p>
+<p class="text-5xl font-black tracking-tighter">12</p>
+</div>
+<div class="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:scale-125 transition-transform"></div>
+</div>
+<!-- Completed Tasks -->
+<div class="bg-primary-fixed text-on-primary-fixed p-6 rounded-xl relative overflow-hidden flex flex-col justify-between h-48 group">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-4xl opacity-50" data-icon="check_circle">check_circle</span>
+<span class="text-xs font-black uppercase tracking-widest bg-on-primary-fixed/10 px-2 py-1 rounded">+2 Bonus</span>
+</div>
+<div>
+<p class="text-sm font-bold opacity-80 uppercase tracking-tighter">Completed</p>
+<p class="text-5xl font-black tracking-tighter">08</p>
+</div>
+<div class="absolute -right-4 -bottom-4 w-24 h-24 bg-primary-container/20 rounded-full blur-2xl group-hover:scale-125 transition-transform"></div>
+</div>
+<!-- Pending Tasks -->
+<div class="bg-tertiary-fixed text-on-tertiary-fixed p-6 rounded-xl relative overflow-hidden flex flex-col justify-between h-48 group">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-4xl opacity-50" data-icon="pending_actions">pending_actions</span>
+<span class="text-xs font-black uppercase tracking-widest bg-on-tertiary-fixed/10 px-2 py-1 rounded">Expiring</span>
+</div>
+<div>
+<p class="text-sm font-bold opacity-80 uppercase tracking-tighter">Pending</p>
+<p class="text-5xl font-black tracking-tighter">04</p>
+</div>
+<div class="absolute -right-4 -bottom-4 w-24 h-24 bg-tertiary-container/20 rounded-full blur-2xl group-hover:scale-125 transition-transform"></div>
+</div>
+</div>
+<!-- Route & Efficiency Section -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Today's Route Summary -->
+<div class="lg:col-span-8 bg-surface-container-lowest rounded-xl overflow-hidden flex flex-col">
+<div class="p-6 flex justify-between items-center">
+<h3 class="text-xl font-extrabold tracking-tight">Today's Route Summary</h3>
+<div class="flex items-center gap-2 text-primary font-bold text-sm">
+<span class="material-symbols-outlined text-sm">near_me</span>
+                            4.2 km left
+                        </div>
+</div>
+<div class="relative h-80 bg-surface-container-high mx-6 mb-6 rounded-lg overflow-hidden border border-outline-variant/10">
+<img class="w-full h-full object-cover opacity-80" data-alt="clean minimal city map layout with a green highlighted navigation path and multiple location markers in a professional tech style" data-location="New Delhi" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDI9O7NCVGVaYogZKASs4RxWywC_p1jT7_nkCzxStCDITjtInaORbHlkRcD3_TqsUTRItjRj_Rtpc3HxL4Lf3pmb12JQmOU9y9jJDVUY9iXchzfzzziAqso-m8c95DYUnlV6PZju_n67Hs0YoXO0_JQMYV4I-OkEKUev2_S1auYTNzpqJnvZnCJ9soNRp_-JEQ3ulMLE45Sqmu8GwoDwcYfDrpYrlgGEQCfGIEUHO2gQGX4BzO9nBywQbrrogorqQTu3Wc-755gZC_3"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+<div class="absolute bottom-4 left-4 right-4 flex gap-2 overflow-x-auto no-scrollbar">
+<div class="bg-white p-3 rounded-lg shadow-lg min-w-[180px] flex items-center gap-3">
+<div class="w-2 h-8 bg-primary rounded-full"></div>
+<div>
+<p class="text-[10px] uppercase font-bold text-slate-400 leading-none">Next Stop</p>
+<p class="text-xs font-bold truncate">Gate 4, Sector 48</p>
+</div>
+</div>
+<div class="bg-white/90 backdrop-blur p-3 rounded-lg shadow-lg min-w-[180px] flex items-center gap-3">
+<div class="w-2 h-8 bg-tertiary rounded-full"></div>
+<div>
+<p class="text-[10px] uppercase font-bold text-slate-400 leading-none">Status</p>
+<p class="text-xs font-bold truncate">High Volume Alert</p>
+</div>
+</div>
+</div>
+</div>
+<div class="px-6 pb-6 grid grid-cols-3 gap-4 border-t border-surface-container-high pt-6">
+<div class="flex flex-col items-center">
+<span class="text-xs font-bold text-on-surface-variant uppercase mb-1">Fuel Efficiency</span>
+<div class="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[88%] shadow-[0_0_8px_rgba(0,107,44,0.4)]"></div>
+</div>
+<span class="text-sm font-black mt-1">88%</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-xs font-bold text-on-surface-variant uppercase mb-1">On-Time Rate</span>
+<div class="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[94%] shadow-[0_0_8px_rgba(0,107,44,0.4)]"></div>
+</div>
+<span class="text-sm font-black mt-1">94%</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="text-xs font-bold text-on-surface-variant uppercase mb-1">AI Precision</span>
+<div class="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[91%] shadow-[0_0_8px_rgba(0,107,44,0.4)]"></div>
+</div>
+<span class="text-sm font-black mt-1">91%</span>
+</div>
+</div>
+</div>
+<!-- Insights List -->
+<div class="lg:col-span-4 space-y-6">
+<div class="bg-surface-container-low p-6 rounded-xl h-full">
+<h3 class="text-xl font-extrabold tracking-tight mb-4 flex items-center justify-between">
+                            Recent Activity
+                            <span class="material-symbols-outlined text-primary">auto_awesome</span>
+</h3>
+<div class="space-y-6">
+<div class="relative pl-6 border-l-2 border-primary-fixed">
+<div class="absolute -left-[9px] top-0 w-4 h-4 bg-primary-fixed rounded-full border-4 border-surface-container-low"></div>
+<p class="text-xs font-bold text-slate-400 uppercase tracking-wide">14:30 PM</p>
+<p class="text-sm font-bold">Waste pickup completed at Sector 45</p>
+<p class="text-xs text-on-surface-variant mt-1">Collected: 45kg Organic, 12kg Plastic</p>
+</div>
+<div class="relative pl-6 border-l-2 border-secondary-fixed">
+<div class="absolute -left-[9px] top-0 w-4 h-4 bg-secondary-fixed rounded-full border-4 border-surface-container-low"></div>
+<p class="text-xs font-bold text-slate-400 uppercase tracking-wide">13:15 PM</p>
+<p class="text-sm font-bold">Vehicle maintenance check passed</p>
+<p class="text-xs text-on-surface-variant mt-1">Efficiency increased by 4%</p>
+</div>
+<div class="relative pl-6 border-l-2 border-tertiary-fixed">
+<div class="absolute -left-[9px] top-0 w-4 h-4 bg-tertiary-fixed rounded-full border-4 border-surface-container-low"></div>
+<p class="text-xs font-bold text-slate-400 uppercase tracking-wide">12:00 PM</p>
+<p class="text-sm font-bold">Route deviation reported: Traffic</p>
+<p class="text-xs text-on-surface-variant mt-1">Redirected via Sub-Highway 4</p>
+</div>
+<div class="pt-4">
+<button class="w-full py-3 bg-surface-container-highest text-on-surface font-bold text-sm rounded-lg hover:bg-surface-variant transition-colors">
+                                    View Detailed Logs
+                                </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick Action Floating Grid -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<button class="bg-surface-container-lowest p-4 rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-primary/5 transition-colors border border-outline-variant/10 group">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform" data-icon="photo_camera" style="font-variation-settings: 'FILL' 1;">photo_camera</span>
+<span class="text-xs font-bold uppercase tracking-tight">Capture Waste</span>
+</button>
+<button class="bg-surface-container-lowest p-4 rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-primary/5 transition-colors border border-outline-variant/10 group">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform" data-icon="local_gas_station" style="font-variation-settings: 'FILL' 1;">local_gas_station</span>
+<span class="text-xs font-bold uppercase tracking-tight">Refuel Log</span>
+</button>
+<button class="bg-surface-container-lowest p-4 rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-primary/5 transition-colors border border-outline-variant/10 group">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform" data-icon="chat" style="font-variation-settings: 'FILL' 1;">chat</span>
+<span class="text-xs font-bold uppercase tracking-tight">Call Center</span>
+</button>
+<button class="bg-surface-container-lowest p-4 rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-primary/5 transition-colors border border-outline-variant/10 group">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform" data-icon="qr_code" style="font-variation-settings: 'FILL' 1;">qr_code</span>
+<span class="text-xs font-bold uppercase tracking-tight">Scan Unit</span>
+</button>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Shared Component) - Mobile Only -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-safe pt-2 bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-50 h-16">
+<a class="bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200 rounded-xl px-4 py-1.5 flex flex-col items-center tap-highlight-transparent transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="home" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="text-[10px] font-semibold tracking-wide uppercase font-inter">Home</span>
+</a>
+<a class="text-slate-400 dark:text-slate-500 flex flex-col items-center tap-highlight-transparent transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="text-[10px] font-semibold tracking-wide uppercase font-inter">Activity</span>
+</a>
+<a class="text-slate-400 dark:text-slate-500 flex flex-col items-center tap-highlight-transparent transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="assignment">assignment</span>
+<span class="text-[10px] font-semibold tracking-wide uppercase font-inter">Tasks</span>
+</a>
+<a class="text-slate-400 dark:text-slate-500 flex flex-col items-center tap-highlight-transparent transition-transform active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-[10px] font-semibold tracking-wide uppercase font-inter">Profile</span>
+</a>
+</nav>
+<!-- FAB Suppression Logic: Not rendering on Dashboard as per shell rules -->
+</body></html>

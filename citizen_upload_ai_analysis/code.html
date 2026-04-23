@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HaritSetu | Upload Waste</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#5a4300",
+                        "surface-container-high": "#e6e8ea",
+                        "surface": "#f7f9fb",
+                        "surface-bright": "#f7f9fb",
+                        "on-background": "#191c1e",
+                        "tertiary-container": "#936f00",
+                        "inverse-surface": "#2d3133",
+                        "on-secondary-container": "#fefcff",
+                        "error-container": "#ffdad6",
+                        "on-primary-container": "#f7fff2",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed": "#00174b",
+                        "on-tertiary": "#ffffff",
+                        "tertiary": "#755800",
+                        "on-surface-variant": "#3e4a3d",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#002109",
+                        "on-primary": "#ffffff",
+                        "primary-fixed": "#7ffc97",
+                        "on-error": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "secondary-container": "#316bf3",
+                        "background": "#f7f9fb",
+                        "primary": "#006b2c",
+                        "primary-fixed-dim": "#62df7d",
+                        "on-tertiary-container": "#fffbff",
+                        "tertiary-fixed-dim": "#f7be1d",
+                        "primary-container": "#00873a",
+                        "surface-tint": "#006e2d",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#003ea8",
+                        "surface-container-low": "#f2f4f6",
+                        "surface-variant": "#e0e3e5",
+                        "tertiary-fixed": "#ffdf9a",
+                        "inverse-primary": "#62df7d",
+                        "on-primary-fixed-variant": "#005320",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary": "#0051d5",
+                        "surface-container-highest": "#e0e3e5",
+                        "secondary-fixed": "#dbe1ff",
+                        "outline-variant": "#bdcaba",
+                        "outline": "#6e7b6c",
+                        "on-tertiary-fixed": "#251a00",
+                        "surface-container": "#eceef0",
+                        "surface-dim": "#d8dadc",
+                        "inverse-on-surface": "#eff1f3"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bg-primary-gradient {
+            background: linear-gradient(135deg, #006b2c 0%, #00873a 100%);
+        }
+        .ai-glow {
+            box-shadow: 0 0 15px rgba(0, 110, 45, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen">
+<!-- SideNavBar Shell -->
+<aside class="fixed h-full w-64 left-0 top-0 hidden md:block bg-slate-50 dark:bg-slate-900 shadow-sm z-50">
+<div class="flex flex-col h-screen py-6 px-4">
+<!-- Brand -->
+<div class="flex items-center gap-3 px-2 mb-10">
+<div class="w-10 h-10 rounded-xl bg-primary-gradient flex items-center justify-center">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">eco</span>
+</div>
+<div>
+<h1 class="text-xl font-black text-green-800 dark:text-green-300 leading-none">HaritSetu</h1>
+<p class="text-[10px] font-medium tracking-widest text-slate-500 uppercase mt-1">Digital Stewardship</p>
+</div>
+</div>
+<!-- Nav Links -->
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 font-inter text-sm font-medium tracking-tight rounded-lg" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                    Dashboard
+                </a>
+<a class="flex items-center gap-3 px-3 py-2.5 border-l-4 border-green-600 dark:border-green-400 text-green-700 dark:text-green-400 font-bold bg-white dark:bg-slate-950/50 font-inter text-sm tracking-tight" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">recycling</span>
+                    Waste Tracking
+                </a>
+<a class="flex items-center gap-3 px-3 py-2.5 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 font-inter text-sm font-medium tracking-tight rounded-lg" href="#">
+<span class="material-symbols-outlined">route</span>
+                    Route Optimization
+                </a>
+<a class="flex items-center gap-3 px-3 py-2.5 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 font-inter text-sm font-medium tracking-tight rounded-lg" href="#">
+<span class="material-symbols-outlined">analytics</span>
+                    Analytics
+                </a>
+<a class="flex items-center gap-3 px-3 py-2.5 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 font-inter text-sm font-medium tracking-tight rounded-lg" href="#">
+<span class="material-symbols-outlined">group</span>
+                    Personnel
+                </a>
+<a class="flex items-center gap-3 px-3 py-2.5 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 font-inter text-sm font-medium tracking-tight rounded-lg" href="#">
+<span class="material-symbols-outlined">settings</span>
+                    Settings
+                </a>
+</nav>
+<!-- Footer Nav -->
+<div class="mt-auto pt-6 space-y-1 border-t border-slate-100 dark:border-slate-800">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-green-600 transition-colors font-inter text-sm" href="#">
+<span class="material-symbols-outlined">help</span>
+                    Support
+                </a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-500 hover:text-green-600 transition-colors font-inter text-sm" href="#">
+<span class="material-symbols-outlined">logout</span>
+                    Logout
+                </a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="md:ml-64 min-h-screen flex flex-col">
+<!-- TopNavBar Shell -->
+<header class="sticky top-0 w-full z-40 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800">
+<div class="flex justify-between items-center h-16 px-6 w-full">
+<div class="flex items-center flex-1">
+<div class="relative w-full max-w-md hidden lg:block">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+<span class="material-symbols-outlined text-sm">search</span>
+</span>
+<input class="block w-full pl-10 pr-3 py-2 border-none bg-surface-container-low rounded-xl text-sm focus:ring-2 focus:ring-green-500 focus:bg-white transition-all" placeholder="Search resources..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex items-center gap-6 font-inter text-sm tracking-normal">
+<a class="text-slate-500 dark:text-slate-400 hover:text-green-600" href="#">Overview</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-green-600" href="#">Map View</a>
+<a class="text-green-700 dark:text-green-400 border-b-2 border-green-700 dark:border-green-400 pb-1" href="#">Reports</a>
+</nav>
+<div class="flex items-center gap-3 pl-6 border-l border-slate-100 dark:border-slate-800">
+<button class="p-2 text-slate-500 hover:bg-slate-50 rounded-full">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-slate-200 overflow-hidden">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" data-alt="professional headshot of a smiling middle-aged environmental engineer with glasses in a bright modern office" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDCAsKtinTAQiHlhHj0gtMEJ9AINv48-49L4DKEa1rCWUwO2Ss9EPj2I6-aE_qmcAA48y0Uk9RvAMgwNtw8r6OivYES2ALUquuIV3PhzirkhdzY5JsALlyc-4LptuqMdLVwZQ55Cf0FzJxcF6BDTOaLsTFMmm0jyNfNsxvvkdhmlidcJI1cSLMeV6oq7xulxEh7W-bi6b3FKrz3jWJ9OkgPEoG8htStrIVWp5dWmk4_l-gDqUdjO5_FZOWTllhxjHvr9PNY5OYZlIA"/>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<div class="p-8 max-w-7xl mx-auto w-full">
+<header class="mb-10">
+<h2 class="text-3xl font-extrabold tracking-tight text-on-surface">Upload Waste Asset</h2>
+<p class="text-on-surface-variant mt-2 max-w-2xl">Use our vision AI to automatically categorize and log waste materials. Simply upload an image to begin the stewardship process.</p>
+</header>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Left: Upload Zone & Preview (Bento Section) -->
+<div class="lg:col-span-7 space-y-6">
+<!-- Drop Zone Card -->
+<div class="bg-surface-container-lowest p-8 rounded-xl border-2 border-dashed border-outline-variant/30 flex flex-col items-center justify-center min-h-[320px] group hover:border-primary/40 transition-colors cursor-pointer">
+<div class="w-16 h-16 rounded-2xl bg-primary/5 text-primary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-4xl">cloud_upload</span>
+</div>
+<h3 class="text-lg font-bold text-on-surface">Drag and drop file</h3>
+<p class="text-sm text-on-surface-variant mt-1">or <span class="text-primary font-semibold">browse files</span> on your device</p>
+<p class="text-[11px] text-slate-400 mt-4 uppercase tracking-widest font-bold">Supports JPG, PNG, HEIC up to 10MB</p>
+</div>
+<!-- Image Preview Bento -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden grid grid-cols-2 gap-1 p-1">
+<div class="relative group aspect-square rounded-lg overflow-hidden">
+<img alt="Plastic Bottle" class="w-full h-full object-cover" data-alt="close-up of a clear crushed plastic water bottle on a clean white minimalist background with soft shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAS7-yLQWvG8pMtX8XXFSSnEzyJ5rqP0SQJYEgAu-s1_mkZV4_NX3dm9sVdHpJFdDs7aDdkevUAgbXgdakoYmcBSlWuiIgY0_dvU63ozyRP4d4dYWZg3GINuo6X5m4tNDE6CGk-K7RlvuLC8hfWp0pMXD5GUShy3Etx8ps6zs4wJnRVd9dTyCOrL6c-O0tSAQc3EQX4_PFUrw3hvchjmpGTrqMIHZMqwEyOEyXU7CezVfSYhHFZgbri0fXI5mLPD_2MX0-OcSjWgifI"/>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+<button class="bg-white/20 backdrop-blur-md p-2 rounded-full text-white">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-lg flex flex-col items-center justify-center border border-outline-variant/10">
+<span class="material-symbols-outlined text-slate-300 text-4xl mb-2">add_photo_alternate</span>
+<span class="text-xs font-bold text-slate-400 tracking-tighter uppercase">Add More</span>
+</div>
+</div>
+</div>
+<!-- Right: AI Insights (Precision Section) -->
+<div class="lg:col-span-5 space-y-6">
+<div class="bg-surface-container-lowest p-6 rounded-xl ai-glow border border-primary/10">
+<div class="flex items-center justify-between mb-8">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<h3 class="text-sm font-bold tracking-tight uppercase text-primary">AI Analysis Engine</h3>
+</div>
+<span class="text-[10px] bg-primary-fixed text-on-primary-fixed-variant px-2 py-0.5 rounded-sm font-bold">READY</span>
+</div>
+<!-- Result Section -->
+<div class="space-y-8">
+<div>
+<label class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Detected Waste Type</label>
+<div class="flex items-end gap-3">
+<span class="text-4xl font-black text-on-surface tracking-tighter">Plastic</span>
+<span class="text-primary font-bold pb-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">verified</span>
+                                        HDPE-2
+                                    </span>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-2">
+<label class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">AI Confidence</label>
+<span class="text-sm font-black text-primary">98%</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary-gradient w-[98%] rounded-full shadow-[0_0_8px_rgba(0,107,44,0.4)]"></div>
+</div>
+</div>
+<div class="bg-surface-container-low p-4 rounded-lg">
+<label class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block mb-2">Disposal Instructions</label>
+<ul class="space-y-3">
+<li class="flex gap-3">
+<span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+<p class="text-sm text-on-surface font-medium">Remove cap and label separately before disposal.</p>
+</li>
+<li class="flex gap-3">
+<span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+<p class="text-sm text-on-surface font-medium">Rinse internal residue to prevent contamination.</p>
+</li>
+<li class="flex gap-3">
+<span class="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+<p class="text-sm text-on-surface font-medium">Compress bottle to optimize collection space.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="mt-8 pt-8 border-t border-outline-variant/10">
+<button class="w-full bg-primary-gradient text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-transform flex items-center justify-center gap-2">
+<span>Confirm &amp; Upload Data</span>
+<span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+<button class="w-full mt-3 py-3 text-on-surface-variant font-bold text-sm hover:text-on-surface transition-colors">
+                                Edit Classification
+                            </button>
+</div>
+</div>
+<!-- Secondary Insights Card -->
+<div class="bg-secondary-fixed text-on-secondary-fixed-variant p-6 rounded-xl">
+<div class="flex items-start gap-4">
+<div class="p-2 bg-white/30 rounded-lg">
+<span class="material-symbols-outlined">eco</span>
+</div>
+<div>
+<h4 class="font-bold text-sm">Estimated Impact</h4>
+<p class="text-xs mt-1 opacity-80 leading-relaxed">Processing this single asset avoids 0.08kg of CO2 emissions compared to landfill disposal.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- BottomNavBar Shell (Mobile) -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-safe pt-2 bg-white dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] md:hidden z-50">
+<a class="text-slate-400 flex flex-col items-center" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-semibold tracking-wide uppercase font-inter mt-1">Home</span>
+</a>
+<a class="bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200 rounded-xl px-4 py-1.5 flex flex-col items-center" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">history</span>
+<span class="text-[10px] font-semibold tracking-wide uppercase font-inter mt-1">Activity</span>
+</a>
+<a class="text-slate-400 flex flex-col items-center" href="#">
+<span class="material-symbols-outlined">assignment</span>
+<span class="text-[10px] font-semibold tracking-wide uppercase font-inter mt-1">Tasks</span>
+</a>
+<a class="text-slate-400 flex flex-col items-center" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-semibold tracking-wide uppercase font-inter mt-1">Profile</span>
+</a>
+</nav>
+</main>
+</body></html>
