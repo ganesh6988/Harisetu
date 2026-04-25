@@ -17,7 +17,22 @@ const AdminDashboard = () => {
   
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(null); // id of report being processed
+  const [assignDropdownId, setAssignDropdownId] = useState(null);
   const navigate = useNavigate();
+
+  // Helper for GPS distance
+  const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
+    if (!lat1 || !lon1 || !lat2 || !lon2) return Infinity;
+    const R = 6371; // Radius of the earth in km
+    const dLat = (lat2-lat1) * (Math.PI/180);
+    const dLon = (lon2-lon1) * (Math.PI/180);
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * (Math.PI/180)) * Math.cos(lat2 * (Math.PI/180)) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2); 
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    return R * c; // Distance in km
+  };
 
   const COLORS = ['#818cf8', '#34d399', '#fbbf24', '#f87171', '#a78bfa', '#60a5fa'];
 
@@ -104,13 +119,16 @@ const AdminDashboard = () => {
     navigate('/');
   };
 
-  const updateReportStatus = async (reportId, newStatus) => {
+  const updateReportStatus = async (reportId, newStatus, workerId = null) => {
     setActionLoading(reportId);
-    const { error } = await supabase.from('reports').update({ status: newStatus }).eq('id', reportId);
+    const updates = { status: newStatus };
+    if (workerId) updates.worker_id = workerId;
+    const { error } = await supabase.from('reports').update(updates).eq('id', reportId);
     if (!error) {
        // Optimistic update
-       setReports(prev => prev.map(r => r.id === reportId ? { ...r, status: newStatus } : r));
+       setReports(prev => prev.map(r => r.id === reportId ? { ...r, status: newStatus, worker_id: workerId || r.worker_id } : r));
        fetchAdminData(); // Refresh metrics
+       setAssignDropdownId(null);
     } else {
        alert("Failed to update status");
     }
@@ -316,17 +334,62 @@ const AdminDashboard = () => {
                                 <h4 className="text-white font-bold">{report.type_of_waste} Report</h4>
                                 <span className="text-xs bg-amber-500/10 text-amber-500 px-2 py-1 rounded">Pending Assignment</span>
                              </div>
-                             <p className="text-slate-400 text-sm mt-1 mb-2"><span className="material-symbols-outlined text-[14px]">pin_drop</span> {report.location}</p>
+                             <p className="text-slate-400 text-sm mt-1 mb-2">
+                                <span className="material-symbols-outlined text-[14px]">pin_drop</span> {report.location || 'No location given'} 
+                                {report.latitude && report.longitude && (
+                                   <span className="ml-2 text-[10px] bg-slate-800 px-2 py-0.5 rounded text-emerald-400">
+                                      GPS: {report.latitude.toFixed(4)}, {report.longitude.toFixed(4)}
+                                   </span>
+                                )}
+                             </p>
                              <p className="text-slate-500 text-xs italic mb-4 max-w-xl">{report.description}</p>
                              <div className="flex gap-4 items-center">
-                                <button 
-                                   onClick={() => updateReportStatus(report.id, 'assigned')}
-                                   disabled={actionLoading === report.id}
-                                   className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded shadow transition-colors text-sm disabled:opacity-50"
-                                >
-                                   {actionLoading === report.id ? 'Processing...' : 'Assign to Workers'}
-                                </button>
-                                <span className="text-xs text-slate-500">Citizen: {report.profiles?.full_name}</span>
+                                {assignDropdownId === report.id ? (
+                                   <div className="bg-slate-800 p-3 rounded-lg border border-slate-700 w-full max-w-md">
+                                      <div className="flex justify-between items-center mb-2">
+                                         <span className="text-xs font-bold text-slate-300">Select Worker</span>
+                                         <button onClick={() => setAssignDropdownId(null)} className="text-slate-500 hover:text-white"><span className="material-symbols-outlined text-[14px]">close</span></button>
+                                      </div>
+                                      <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
+                                         {users.filter(u => u.role === 'worker').sort((a, b) => {
+                                            const distA = getDistanceFromLatLonInKm(report.latitude, report.longitude, a.latitude, a.longitude);
+                                            const distB = getDistanceFromLatLonInKm(report.latitude, report.longitude, b.latitude, b.longitude);
+                                            return distA - distB;
+                                         }).map(worker => {
+                                            const dist = getDistanceFromLatLonInKm(report.latitude, report.longitude, worker.latitude, worker.longitude);
+                                            return (
+                                               <div key={worker.id} className="flex justify-between items-center bg-slate-900 p-2 rounded border border-slate-700">
+                                                  <div>
+                                                     <p className="text-sm font-bold text-white">{worker.full_name}</p>
+                                                     {dist !== Infinity ? (
+                                                        <p className="text-[10px] text-emerald-400 font-bold">{dist.toFixed(1)} km away</p>
+                                                     ) : (
+                                                        <p className="text-[10px] text-amber-500 font-bold">Default Zone / Standby</p>
+                                                     )}
+                                                  </div>
+                                                  <button 
+                                                     onClick={() => updateReportStatus(report.id, 'assigned', worker.id)}
+                                                     className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-3 py-1.5 rounded transition-colors"
+                                                  >
+                                                     Assign
+                                                  </button>
+                                               </div>
+                                            );
+                                         })}
+                                      </div>
+                                   </div>
+                                ) : (
+                                   <button 
+                                      onClick={() => setAssignDropdownId(report.id)}
+                                      disabled={actionLoading === report.id}
+                                      className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded shadow transition-colors text-sm disabled:opacity-50"
+                                   >
+                                      {actionLoading === report.id ? 'Processing...' : 'Assign to Worker'}
+                                   </button>
+                                )}
+                                {assignDropdownId !== report.id && (
+                                   <span className="text-xs text-slate-500">Citizen: {report.profiles?.full_name}</span>
+                                )}
                              </div>
                           </div>
                        </div>

@@ -12,7 +12,8 @@ const CitizenDashboard = () => {
   // Redeem Modal State
   const [showModal, setShowModal] = useState(false);
   const [selectedReward, setSelectedReward] = useState(null);
-  const [shippingDetails, setShippingDetails] = useState('');
+  const [claimSuccess, setClaimSuccess] = useState(false);
+  const [shippingDetails, setShippingDetails] = useState({ fullName: '', phone: '', address: '' });
   const [redeemLoading, setRedeemLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -69,7 +70,7 @@ const CitizenDashboard = () => {
       if (allReports && allProfiles) {
          const scores = {};
          allReports.forEach(r => {
-            scores[r.citizen_id] = (scores[r.citizen_id] || 0) + (r.weight_kg ? Number(r.weight_kg) * 10 : 10);
+            scores[r.citizen_id] = (scores[r.citizen_id] || 0) + 10;
          });
          
          const ranked = allProfiles.map(p => ({
@@ -85,6 +86,17 @@ const CitizenDashboard = () => {
     };
 
     fetchCitizenData();
+
+    // Subscribe to realtime updates for tokens/reports
+    const channel = supabase.channel('realtime_citizen_data')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reports' }, () => {
+         fetchCitizenData();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [navigate]);
 
   const handleLogout = async () => {
@@ -98,25 +110,83 @@ const CitizenDashboard = () => {
   };
   
   const confirmRedemption = async () => {
-    if (!shippingDetails) return alert('Please enter shipping details');
+    if (!shippingDetails.fullName || !shippingDetails.phone || !shippingDetails.address) {
+       return alert('Please enter all shipping details');
+    }
     setRedeemLoading(true);
+    
+    const fullAddressString = `${shippingDetails.fullName} | ${shippingDetails.phone} | ${shippingDetails.address}`;
     
     const { data, error } = await supabase.from('reward_claims').insert([{
        citizen_id: profile.id,
        reward_name: selectedReward.name,
        tokens_cost: selectedReward.cost,
-       shipping_details: shippingDetails
+       shipping_details: fullAddressString
     }]).select();
     
     if (!error && data) {
        setClaims([...claims, data[0]]);
-       setShowModal(false);
-       setShippingDetails('');
+       setClaimSuccess(true);
+       setShippingDetails({ fullName: '', phone: '', address: '' });
     } else {
        console.error("Redeem error:", error);
        alert("Failed to redeem reward");
     }
     setRedeemLoading(false);
+  };
+
+  const downloadFullHistoryCSV = () => {
+    if (reports.length === 0) return alert("No reports to download.");
+    
+    const headers = ["Report ID", "Date", "Waste Type", "Status", "Estimated Weight (kg)", "Location"];
+    const rows = reports.map(r => [
+      r.id,
+      new Date(r.created_at).toLocaleDateString(),
+      r.type_of_waste || 'Unknown',
+      r.status,
+      r.weight_kg || 0,
+      `"${(r.location || '').replace(/"/g, '""')}"`
+    ]);
+    
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+      
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `HaritSetu_History_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const downloadReceipt = (report) => {
+    const receiptContent = `
+========================================
+HARITSETU WASTE REPORT RECEIPT
+========================================
+Report ID: ${report.id}
+Date: ${new Date(report.created_at).toLocaleString()}
+Citizen: ${profile?.full_name || 'Citizen'}
+
+Waste Type: ${report.type_of_waste || 'Unknown'}
+Status: ${report.status.toUpperCase()}
+Location: ${report.location || 'Not provided'}
+Estimated Weight: ${report.weight_kg ? report.weight_kg + ' kg' : 'Not provided'}
+
+Thank you for your digital stewardship!
+========================================
+    `.trim();
+
+    const blob = new Blob([receiptContent], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `Receipt_${report.id}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   if (loading) {
@@ -130,10 +200,10 @@ const CitizenDashboard = () => {
   const reportsResolved = reports.filter(r => r.status === 'resolved').length;
   const ecoImpactKg = reports.reduce((acc, curr) => acc + Number(curr.weight_kg || 0), 0);
   
-  // TOKENS: Strict rule - only reward on RESOLVED reports!
-  const grossTokens = reports.filter(r => r.status === 'resolved').reduce((acc, curr) => acc + (curr.weight_kg ? Number(curr.weight_kg) * 10 : 10), 0);
+  // TOKENS: Strict rule - only reward on RESOLVED reports! (10 tokens per upload)
+  const grossTokens = reports.filter(r => r.status === 'resolved').length * 10;
   const spentTokens = claims.reduce((acc, curr) => acc + curr.tokens_cost, 0);
-  const tokensBalance = grossTokens - spentTokens;
+  const tokensBalance = Math.max(0, grossTokens - spentTokens);
   
   // Real Leaderboard Setup
   const topRanker = leaderboard.length > 0 ? leaderboard[0] : null;
@@ -146,33 +216,56 @@ const CitizenDashboard = () => {
       {showModal && (
          <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
             <div className="bg-surface-container-lowest rounded-2xl p-8 max-w-sm w-full shadow-2xl relative border border-primary/20">
-               <button onClick={() => setShowModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+               <button onClick={() => { setShowModal(false); setClaimSuccess(false); }} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
                   <span className="material-symbols-outlined">close</span>
                </button>
-               <h3 className="text-xl font-black mb-2 flex items-center gap-2 text-on-surface">
-                 <span className="material-symbols-outlined text-primary">shopping_bag</span> Redeem Reward
-               </h3>
-               <p className="text-sm font-bold text-slate-500 mb-6 border-b border-outline-variant/30 pb-4">
-                  Claiming: <span className="text-primary">{selectedReward?.name}</span> <br/>
-                  Cost: <span className="text-primary">{selectedReward?.cost} Tokens</span>
-               </p>
-               <div className="mb-6">
-                  <label className="text-xs font-bold text-on-surface-variant uppercase tracking-widest pl-1 block mb-2">Delivery Details</label>
-                  <textarea 
-                     rows="3" 
-                     className="w-full bg-surface border border-outline-variant rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary shadow-sm" 
-                     placeholder="Enter full shipping address, pin code, and contact number"
-                     value={shippingDetails}
-                     onChange={(e) => setShippingDetails(e.target.value)}
-                  />
-               </div>
-               <button 
-                 onClick={confirmRedemption} 
-                 disabled={redeemLoading}
-                 className="w-full py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-container shadow-md transition-all active:scale-95 disabled:opacity-70"
-               >
-                 {redeemLoading ? 'Processing...' : 'Confirm Redemption'}
-               </button>
+               
+               {claimSuccess ? (
+                  <div className="text-center py-6">
+                     <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                        <span className="material-symbols-outlined text-primary text-5xl">redeem</span>
+                     </div>
+                     <h3 className="text-2xl font-black text-on-surface mb-2">Reward Claimed!</h3>
+                     <p className="text-sm text-on-surface-variant mb-6">Your order for <strong className="text-primary">{selectedReward?.name}</strong> has been confirmed. It will be delivered to you soon.</p>
+                     <button 
+                        onClick={() => { setShowModal(false); setClaimSuccess(false); }} 
+                        className="w-full py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-container shadow-md transition-all active:scale-95"
+                     >
+                        Awesome!
+                     </button>
+                  </div>
+               ) : (
+                  <>
+                     <h3 className="text-xl font-black mb-2 flex items-center gap-2 text-on-surface">
+                       <span className="material-symbols-outlined text-primary">shopping_bag</span> Redeem Reward
+                     </h3>
+                     <p className="text-sm font-bold text-slate-500 mb-6 border-b border-outline-variant/30 pb-4">
+                        Claiming: <span className="text-primary">{selectedReward?.name}</span> <br/>
+                        Cost: <span className="text-primary">{selectedReward?.cost} Tokens</span>
+                     </p>
+                     <div className="mb-6 space-y-4">
+                        <div>
+                           <label className="text-xs font-bold text-on-surface-variant uppercase tracking-widest pl-1 block mb-1">Full Name</label>
+                           <input type="text" className="w-full bg-surface border border-outline-variant rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary shadow-sm" placeholder="e.g., John Doe" value={shippingDetails.fullName} onChange={(e) => setShippingDetails({...shippingDetails, fullName: e.target.value})} />
+                        </div>
+                        <div>
+                           <label className="text-xs font-bold text-on-surface-variant uppercase tracking-widest pl-1 block mb-1">Phone Number</label>
+                           <input type="tel" className="w-full bg-surface border border-outline-variant rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary shadow-sm" placeholder="e.g., 9876543210" value={shippingDetails.phone} onChange={(e) => setShippingDetails({...shippingDetails, phone: e.target.value})} />
+                        </div>
+                        <div>
+                           <label className="text-xs font-bold text-on-surface-variant uppercase tracking-widest pl-1 block mb-1">Delivery Address & Pincode</label>
+                           <textarea rows="2" className="w-full bg-surface border border-outline-variant rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary shadow-sm resize-none" placeholder="Enter full address" value={shippingDetails.address} onChange={(e) => setShippingDetails({...shippingDetails, address: e.target.value})} />
+                        </div>
+                     </div>
+                     <button 
+                       onClick={confirmRedemption} 
+                       disabled={redeemLoading}
+                       className="w-full py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-container shadow-md transition-all active:scale-95 disabled:opacity-70 flex items-center justify-center gap-2"
+                     >
+                       {redeemLoading ? <span className="material-symbols-outlined animate-spin">progress_activity</span> : 'Confirm Redemption'}
+                     </button>
+                  </>
+               )}
             </div>
          </div>
       )}
@@ -301,6 +394,12 @@ const CitizenDashboard = () => {
                   Your Operations
                   <span className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse"></span>
                 </h3>
+                <button 
+                  onClick={downloadFullHistoryCSV}
+                  className="text-xs font-bold bg-surface border border-outline-variant hover:bg-surface-variant text-slate-600 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 shadow-sm"
+                >
+                  <span className="material-symbols-outlined text-[14px]">download</span> CSV
+                </button>
               </div>
               <div className="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden border border-outline-variant/15">
                 <div className="divide-y divide-slate-50">
@@ -344,11 +443,19 @@ const CitizenDashboard = () => {
                           </p>
                           <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                             <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[12px]">schedule</span> {new Date(report.created_at).toLocaleDateString()}</span>
-                            {report.status === 'resolved' ? (
-                               <span className="text-primary font-black">+{report.weight_kg ? Number(report.weight_kg) * 10 : 10} Tokens Earned</span>
-                            ) : (
-                               <span>Awaiting Admin Verification</span>
-                            )}
+                            
+                            <div className="flex items-center gap-3">
+                              {report.status === 'resolved' ? (
+                                 <span className="text-primary font-black">+10 Tokens Earned</span>
+                              ) : report.status === 'pending' ? (
+                                 <span>Awaiting Admin Assignment</span>
+                              ) : (
+                                 <span>In Progress...</span>
+                              )}
+                              <button onClick={() => downloadReceipt(report)} className="text-slate-500 hover:text-primary transition-colors flex items-center" title="Download Receipt">
+                                <span className="material-symbols-outlined text-[14px]">download</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -406,16 +513,16 @@ const CitizenDashboard = () => {
                    {/* Reward 1 */}
                    <div className="flex items-center gap-4 bg-stone-50 p-3 rounded-lg border border-stone-200 hover:border-primary/30 transition-colors">
                       <div className="w-12 h-12 rounded-md bg-white border border-stone-100 flex items-center justify-center shrink-0 text-xl shadow-sm">
-                         🌲
+                         🌱
                       </div>
                       <div className="flex-1 min-w-0">
-                         <p className="text-xs font-bold text-on-surface truncate">Mini Succulent</p>
+                         <p className="text-xs font-bold text-on-surface truncate">Organic Seed Bombs Pack</p>
                          <p className="text-[10px] text-primary font-bold">50 Tokens</p>
                       </div>
                       <button 
-                        onClick={() => handleRedeemClick('Mini Succulent', 50)}
+                        onClick={() => handleRedeemClick('Organic Seed Bombs Pack', 50)}
                         disabled={tokensBalance < 50} 
-                        className={`text-[10px] font-bold px-3 py-2 rounded shadow-sm transition-all ${tokensBalance >= 50 ? 'bg-primary text-white hover:opacity-90 active:scale-95' : 'bg-slate-200 text-slate-400'}`}
+                        className={`text-[10px] font-bold px-3 py-2 rounded shadow-sm transition-all shrink-0 ${tokensBalance >= 50 ? 'bg-primary text-white hover:opacity-90 active:scale-95' : 'bg-slate-200 text-slate-400'}`}
                       >
                          {tokensBalance >= 50 ? 'Claim Now' : 'Locked'}
                       </button>
@@ -424,34 +531,52 @@ const CitizenDashboard = () => {
                    {/* Reward 2 */}
                    <div className="flex items-center gap-4 bg-amber-50/50 p-3 rounded-lg border border-amber-100 hover:border-primary/30 transition-colors">
                       <div className="w-12 h-12 rounded-md bg-white border border-amber-50 flex items-center justify-center shrink-0 text-xl shadow-sm">
-                         🛍️
+                         🍴
                       </div>
                       <div className="flex-1 min-w-0">
-                         <p className="text-xs font-bold text-on-surface truncate">Custom Jute Bag</p>
-                         <p className="text-[10px] text-primary font-bold">150 Tokens</p>
+                         <p className="text-xs font-bold text-on-surface truncate">Reusable Bamboo Cutlery</p>
+                         <p className="text-[10px] text-primary font-bold">100 Tokens</p>
                       </div>
                       <button 
-                         onClick={() => handleRedeemClick('Custom Jute Bag', 150)}
-                        disabled={tokensBalance < 150} 
-                        className={`text-[10px] font-bold px-3 py-2 rounded shadow-sm transition-all ${tokensBalance >= 150 ? 'bg-primary text-white hover:opacity-90 active:scale-95' : 'bg-slate-200 text-slate-400'}`}
+                         onClick={() => handleRedeemClick('Reusable Bamboo Cutlery', 100)}
+                        disabled={tokensBalance < 100} 
+                        className={`text-[10px] font-bold px-3 py-2 rounded shadow-sm transition-all shrink-0 ${tokensBalance >= 100 ? 'bg-primary text-white hover:opacity-90 active:scale-95' : 'bg-slate-200 text-slate-400'}`}
                       >
-                         {tokensBalance >= 150 ? 'Claim Now' : 'Locked'}
+                         {tokensBalance >= 100 ? 'Claim Now' : 'Locked'}
                       </button>
                    </div>
 
                    {/* Reward 3 */}
                    <div className="flex items-center gap-4 bg-emerald-50/50 p-3 rounded-lg border border-emerald-100 hover:border-primary/30 transition-colors">
                       <div className="w-12 h-12 rounded-md bg-white border border-emerald-50 flex items-center justify-center shrink-0 text-xl shadow-sm">
-                         🎫
+                         🛍️
                       </div>
                       <div className="flex-1 min-w-0">
-                         <p className="text-xs font-bold text-on-surface truncate">Community Event Pass</p>
+                         <p className="text-xs font-bold text-on-surface truncate">Eco-Friendly Jute Bag</p>
+                         <p className="text-[10px] text-primary font-bold">150 Tokens</p>
+                      </div>
+                      <button 
+                        onClick={() => handleRedeemClick('Eco-Friendly Jute Bag', 150)}
+                        disabled={tokensBalance < 150} 
+                        className={`text-[10px] font-bold px-3 py-2 rounded shadow-sm transition-all shrink-0 ${tokensBalance >= 150 ? 'bg-primary text-white hover:opacity-90 active:scale-95' : 'bg-slate-200 text-slate-400'}`}
+                      >
+                         {tokensBalance >= 150 ? 'Claim Now' : 'Locked'}
+                      </button>
+                   </div>
+
+                   {/* Reward 4 */}
+                   <div className="flex items-center gap-4 bg-blue-50/50 p-3 rounded-lg border border-blue-100 hover:border-primary/30 transition-colors">
+                      <div className="w-12 h-12 rounded-md bg-white border border-blue-50 flex items-center justify-center shrink-0 text-xl shadow-sm">
+                         👕
+                      </div>
+                      <div className="flex-1 min-w-0">
+                         <p className="text-xs font-bold text-on-surface truncate">Recycled Cotton T-Shirt</p>
                          <p className="text-[10px] text-primary font-bold">300 Tokens</p>
                       </div>
                       <button 
-                        onClick={() => handleRedeemClick('Community Event Pass', 300)}
+                        onClick={() => handleRedeemClick('Recycled Cotton T-Shirt', 300)}
                         disabled={tokensBalance < 300} 
-                        className={`text-[10px] font-bold px-3 py-2 rounded shadow-sm transition-all ${tokensBalance >= 300 ? 'bg-primary text-white hover:opacity-90 active:scale-95' : 'bg-slate-200 text-slate-400'}`}
+                        className={`text-[10px] font-bold px-3 py-2 rounded shadow-sm transition-all shrink-0 ${tokensBalance >= 300 ? 'bg-primary text-white hover:opacity-90 active:scale-95' : 'bg-slate-200 text-slate-400'}`}
                       >
                          {tokensBalance >= 300 ? 'Claim Now' : 'Locked'}
                       </button>

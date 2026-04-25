@@ -1,18 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+
+let DefaultIcon = L.icon({
+    iconUrl: icon,
+    shadowUrl: iconShadow,
+    iconAnchor: [12, 41]
+});
+L.Marker.prototype.options.icon = DefaultIcon;
+
+function LocationMarker({ position, setPosition }) {
+  const map = useMapEvents({
+    click(e) {
+      setPosition(e.latlng);
+      map.flyTo(e.latlng, 15);
+    },
+  });
+
+  useEffect(() => {
+    if (position && position.lat && position.lng) {
+      map.flyTo(position, 15);
+    }
+  }, [position?.lat, position?.lng, map]);
+
+  return position === null ? null : (
+    <Marker position={position}></Marker>
+  );
+}
 
 const UploadPage = () => {
   const [profile, setProfile] = useState(null);
   const [file, setFile] = useState(null);
   const [typeOfWaste, setTypeOfWaste] = useState('Plastic'); // Default
   const [location, setLocation] = useState('');
+  const [latitude, setLatitude] = useState(null);
+  const [longitude, setLongitude] = useState(null);
   const [description, setDescription] = useState('');
   const [estimatedWeight, setEstimatedWeight] = useState(1);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   
   const navigate = useNavigate();
 
@@ -29,31 +63,69 @@ const UploadPage = () => {
     fetchUser();
   }, [navigate]);
 
-  const handleLocationChange = async (e) => {
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (searchQuery.length > 2) {
+        try {
+          const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(searchQuery)}&limit=5`);
+          const data = await res.json();
+          if (data && data.features && data.features.length > 0) {
+             const formatted = data.features.map((f, i) => {
+               const p = f.properties;
+               const parts = [];
+               if (p.name) parts.push(p.name);
+               if (p.street) parts.push(p.street);
+               if (p.city || p.town || p.village) parts.push(p.city || p.town || p.village);
+               if (p.state) parts.push(p.state);
+               return {
+                 id: i,
+                 display_name: parts.join(', '),
+                 lat: f.geometry.coordinates[1],
+                 lon: f.geometry.coordinates[0]
+               };
+             });
+             setSuggestions(formatted);
+          } else {
+             setSuggestions([]);
+          }
+        } catch (e) {
+          console.error("Geocoding error", e);
+        }
+      } else {
+        setSuggestions([]);
+      }
+    }, 600); // 600ms debounce delay
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
+
+  const handleLocationChange = (e) => {
     const val = e.target.value;
     setLocation(val);
-    
-    // Add small delay to prevent spamming the API
-    if (val.length > 2) {
-      try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val)}&countrycodes=in&limit=5`);
-        const data = await res.json();
-        if (data && data.length > 0) {
-           setSuggestions(data);
-        } else {
-           setSuggestions([]);
-        }
-      } catch (e) {
-        console.error("Geocoding error", e);
-      }
-    } else {
-      setSuggestions([]);
-    }
+    setSearchQuery(val);
   };
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
+    }
+  };
+
+  const captureGPS = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLatitude(position.coords.latitude);
+          setLongitude(position.coords.longitude);
+          if (!location) setLocation(`GPS Coordinates: ${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`);
+        },
+        (error) => {
+          console.error("Error getting location", error);
+          alert("Could not get GPS location. Please allow location access in your browser settings.");
+        }
+      );
+    } else {
+      alert("Geolocation is not supported by this browser.");
     }
   };
 
@@ -100,6 +172,8 @@ const UploadPage = () => {
           type_of_waste: typeOfWaste,
           image_url: publicUrl,
           location: location,
+          latitude: latitude,
+          longitude: longitude,
           description: description
         }
       ]);
@@ -148,7 +222,7 @@ const UploadPage = () => {
                  </div>
                  <div className="flex justify-between text-sm">
                     <span className="font-bold text-on-surface-variant">Est. Tokens</span>
-                    <span className="font-bold text-primary">+{estimatedWeight ? estimatedWeight * 10 : 10}</span>
+                    <span className="font-bold text-primary">+10</span>
                  </div>
               </div>
               <Link to="/citizen" className="px-8 py-4 bg-gradient-to-r from-primary to-primary-container text-white font-black text-[15px] rounded-xl shadow-lg hover:shadow-primary/30 transition-all active:scale-[0.98]">
@@ -178,19 +252,30 @@ const UploadPage = () => {
                   <div className="space-y-6">
                     <div>
                       <label className="text-xs font-bold text-on-surface-variant uppercase tracking-widest pl-1 block mb-2" htmlFor="typeOfWaste">Waste Category</label>
-                      <select
-                        id="typeOfWaste"
-                        value={typeOfWaste}
-                        onChange={(e) => setTypeOfWaste(e.target.value)}
-                        className="w-full px-4 py-3 bg-surface border border-outline-variant rounded-xl text-sm font-medium focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all cursor-pointer"
-                      >
-                        <option value="Plastic">Plastic Packaging & Bottles</option>
-                        <option value="Organic">Organic / Food Waste</option>
-                        <option value="Glass">Glass</option>
-                        <option value="Metal">Recyclable Metal</option>
-                        <option value="E-Waste">Electronics (E-Waste)</option>
-                        <option value="Mixed">Mixed / Unsorted / Unknown</option>
-                      </select>
+                      <div className="grid grid-cols-3 gap-3">
+                        {[
+                          { id: 'Plastic', label: 'Plastic', icon: 'recycling' },
+                          { id: 'Organic', label: 'Organic', icon: 'compost' },
+                          { id: 'Glass', label: 'Glass', icon: 'wine_bar' },
+                          { id: 'Metal', label: 'Metal', icon: 'build' },
+                          { id: 'E-Waste', label: 'E-Waste', icon: 'devices' },
+                          { id: 'Mixed', label: 'Mixed', icon: 'category' }
+                        ].map(type => (
+                           <button
+                             type="button"
+                             key={type.id}
+                             onClick={() => setTypeOfWaste(type.id)}
+                             className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all duration-200 ${
+                               typeOfWaste === type.id 
+                                 ? 'border-primary bg-primary/10 text-primary scale-105 shadow-sm ring-1 ring-primary/20' 
+                                 : 'border-outline-variant/40 bg-surface hover:bg-surface-variant hover:border-outline-variant text-slate-500 hover:text-slate-700'
+                             }`}
+                           >
+                             <span className="material-symbols-outlined mb-1.5 text-[22px]">{type.icon}</span>
+                             <span className="text-[10px] font-black uppercase tracking-widest">{type.label}</span>
+                           </button>
+                        ))}
+                      </div>
                     </div>
 
                     <div>
@@ -217,13 +302,21 @@ const UploadPage = () => {
                   {/* Details */}
                   <div className="space-y-6">
                     <div>
-                      <label className="text-xs font-bold text-on-surface-variant uppercase tracking-widest pl-1 block mb-2" htmlFor="location">Location / Landmark*</label>
-                      <div className="relative group">
+                      <div className="flex justify-between items-center mb-2">
+                         <label className="text-xs font-bold text-on-surface-variant uppercase tracking-widest pl-1" htmlFor="location">Location / Landmark (Optional)</label>
+                         <button 
+                           type="button" 
+                           onClick={captureGPS} 
+                           className="text-xs font-bold text-primary flex items-center gap-1 hover:underline"
+                         >
+                            <span className="material-symbols-outlined text-[14px]">my_location</span> Get GPS
+                         </button>
+                      </div>
+                      <div className="relative group mb-4">
                         <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">pin_drop</span>
                         <input 
                           id="location"
                           type="text" 
-                          required
                           value={location}
                           onChange={handleLocationChange}
                           className="w-full pl-12 pr-4 py-3 bg-surface border border-outline-variant rounded-xl text-sm focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-sm"
@@ -234,8 +327,13 @@ const UploadPage = () => {
                           <div className="absolute z-50 w-full mt-2 bg-surface-container-lowest border border-outline-variant/50 rounded-xl shadow-xl max-h-48 overflow-y-auto">
                             {suggestions.map(s => (
                               <div 
-                                key={s.place_id} 
-                                onClick={() => { setLocation(s.display_name); setSuggestions([]); }}
+                                key={s.id} 
+                                onClick={() => { 
+                                  setLocation(s.display_name); 
+                                  setLatitude(s.lat);
+                                  setLongitude(s.lon);
+                                  setSuggestions([]); 
+                                }}
                                 className="p-3 text-xs border-b border-outline-variant/30 hover:bg-surface-variant cursor-pointer text-on-surface line-clamp-2"
                               >
                                 <span className="material-symbols-outlined text-[12px] inline-block mr-1 align-middle text-slate-400">location_on</span>
@@ -244,6 +342,23 @@ const UploadPage = () => {
                             ))}
                           </div>
                         )}
+                      </div>
+                      
+                      <div className="border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+                         <MapContainer center={[20.5937, 78.9629]} zoom={5} style={{ height: '220px', width: '100%', zIndex: 10 }}>
+                           <TileLayer
+                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                           />
+                           <LocationMarker 
+                             position={latitude && longitude ? {lat: latitude, lng: longitude} : null} 
+                             setPosition={(pos) => { 
+                               setLatitude(pos.lat); 
+                               setLongitude(pos.lng); 
+                               if (!location) setLocation(`Map Selection: ${pos.lat.toFixed(4)}, ${pos.lng.toFixed(4)}`);
+                             }} 
+                           />
+                         </MapContainer>
                       </div>
                     </div>
 

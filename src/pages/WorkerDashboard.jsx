@@ -8,6 +8,8 @@ const WorkerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState(null);
   const [processingType, setProcessingType] = useState(null);
+  const [gpsActive, setGpsActive] = useState(false);
+  const [workerLocation, setWorkerLocation] = useState(null);
   const navigate = useNavigate();
 
   const fetchWorkerData = async () => {
@@ -59,8 +61,36 @@ const WorkerDashboard = () => {
       })
       .subscribe();
 
+    // Start GPS Tracking
+    let watchId;
+    if (navigator.geolocation) {
+      watchId = navigator.geolocation.watchPosition(
+        async (position) => {
+          setGpsActive(true);
+          const { latitude, longitude } = position.coords;
+          setWorkerLocation({ latitude, longitude });
+          
+          // Update profile with latest location
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await supabase.from('profiles').update({
+              latitude: latitude,
+              longitude: longitude,
+              last_location_update: new Date().toISOString()
+            }).eq('id', user.id);
+          }
+        },
+        (error) => {
+          console.error("GPS Tracking Error:", error);
+          setGpsActive(false);
+        },
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+      );
+    }
+
     return () => {
       supabase.removeChannel(channel);
+      if (watchId) navigator.geolocation.clearWatch(watchId);
     };
   }, [navigate]);
 
@@ -134,9 +164,25 @@ const WorkerDashboard = () => {
             </h2>
             <p className="text-slate-400 mt-2 font-medium">Clear your designated extraction zones securely.</p>
           </div>
-          <div className="text-right border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 rounded-xl">
-             <p className="text-[10px] uppercase text-emerald-300 font-bold tracking-widest">Active Operative</p>
-             <p className="text-sm font-bold text-emerald-100">{profile?.full_name}</p>
+          <div className="text-right border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 rounded-xl flex items-center gap-4">
+             {gpsActive && workerLocation ? (
+               <div className="flex items-center gap-1.5 text-emerald-400">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest">GPS Active</span>
+               </div>
+             ) : (
+               <div className="flex items-center gap-1.5 text-slate-500">
+                  <span className="material-symbols-outlined text-[12px]">location_off</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest">GPS Inactive</span>
+               </div>
+             )}
+             <div className="border-l border-emerald-500/30 pl-4">
+                <p className="text-[10px] uppercase text-emerald-300 font-bold tracking-widest">Active Operative</p>
+                <p className="text-sm font-bold text-emerald-100">{profile?.full_name}</p>
+             </div>
           </div>
         </header>
 
